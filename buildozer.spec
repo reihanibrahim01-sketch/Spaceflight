@@ -5,7 +5,7 @@ package.domain = com.example
 source.dir = .
 source.include_exts = py
 version = 1.0
-requirements = python3,pygame
+requirements = python3,kivy,pygame==2.1.3
 orientation = landscape
 fullscreen = 1
 android.permissions = INTERNET
