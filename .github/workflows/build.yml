@@ -14,28 +14,26 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool wget
+          sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool
           pip install buildozer cython
-      - name: Install Android SDK
+      - name: Prepare Buildozer SDK directory
         run: |
+          # Buat direktori SDK default Buildozer
+          mkdir -p ~/.buildozer/android/platform/android-sdk
           # Download command line tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
-          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-          # Set environment variables
-          export ANDROID_HOME=$HOME/android-sdk
+          unzip -q cmdline-tools.zip -d ~/.buildozer/android/platform/android-sdk/cmdline-tools
+          mv ~/.buildozer/android/platform/android-sdk/cmdline-tools/cmdline-tools ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+          # Set environment
+          export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
           export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
           # Accept licenses
           yes | sdkmanager --licenses
-          # Install required packages (build-tools, platform, platform-tools)
+          # Install build-tools yang menyertakan aidl
           sdkmanager "build-tools;31.0.0" "platforms;android-31" "platform-tools"
-          # Verify aidl exists
-          ls -l $ANDROID_HOME/build-tools/31.0.0/aidl
       - name: Build APK
         run: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+          export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
           buildozer -v android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
