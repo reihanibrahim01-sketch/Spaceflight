@@ -14,17 +14,28 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool
+          sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool wget
           pip install buildozer cython
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: 31
-          build-tools: '31.0.0'
-          accept-license: true
+      - name: Install Android SDK
+        run: |
+          # Download command line tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          # Set environment variables
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+          # Accept licenses
+          yes | sdkmanager --licenses
+          # Install required packages (build-tools, platform, platform-tools)
+          sdkmanager "build-tools;31.0.0" "platforms;android-31" "platform-tools"
+          # Verify aidl exists
+          ls -l $ANDROID_HOME/build-tools/31.0.0/aidl
       - name: Build APK
         run: |
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
           buildozer -v android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
